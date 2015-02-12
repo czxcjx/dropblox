@@ -212,6 +212,23 @@ class Board(object):
     new_bitmap = [row for row in bitmap if not all(row)]
     return [cols*[0] for i in range(rows - len(new_bitmap))] + new_bitmap
 
+  # returns aggregate height of board
+  def findAggregateHeight(bitmap):
+    # can probably keep this as a class variable in the board
+    return 0
+
+  # find number of lines that are completed
+  def findCompleteLines(bitmap):
+    return 0
+
+  # find the number of holes in the board
+  def findHoles(bitmap):
+    return 0
+
+  # find the number of wells in the board
+  def findWells(bitmap):
+    return 0
+
 if __name__ == '__main__':
   if len(sys.argv) == 3:
     # This AI executable will be called with two arguments: a JSON blob of the
