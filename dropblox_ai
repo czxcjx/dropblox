@@ -266,6 +266,69 @@ class Board(object):
       bumpiness += abs(heights[i] - heights[i+1])
     return bumpiness
 
+def findBest(board, block):
+  visited = set()
+  q = Queue.Queue()
+  q.put(([],copy.deepcopy(block)))
+  solutions = []
+  while not q.empty():
+    ins,b = q.get()
+    nb = copy.deepcopy(b)
+    nb.left()
+    if board.check(nb) and (nb not in visited):
+      q.put((ins + ['left'],nb))
+      visited.add(nb)
+    nb = copy.deepcopy(b)
+    nb.right()
+    if board.check(nb) and (nb not in visited):
+      q.put((ins+['right'],nb))
+      visited.add(nb)
+    nb = copy.deepcopy(b)
+    nb.up()
+    if board.check(nb) and (nb not in visited):
+      q.put((ins+['up'],nb))
+      visited.add(nb)
+    nb = copy.deepcopy(b)
+    nb.down()
+    if board.check(nb) and (nb not in visited):
+      q.put((ins+['down'],nb))
+      visited.add(nb)
+    if not board.check(nb):
+      solutions.append((ins,b))
+
+  boardScores = []
+
+  for (instructions, block) in solutions:
+    print >> sys.stderr, "== solution =="
+    replaceBoard = copy.deepcopy(board)
+    # move block to new position
+    for currInstruction in instructions:
+      print >> sys.stderr, currInstruction
+      if currInstruction == "down":
+        replaceBoard.block.down()
+      elif currInstruction == "up":
+        replaceBoard.block.up()
+      elif currInstruction == "left":
+        replaceBoard.block.left()
+      elif currInstruction == "right":
+        replaceBoard.block.right()
+    
+    # find score for this board
+    score = 0
+    score += replaceBoard.findCompleteLines(replaceBoard.bitmap) * 0.99275
+    score += replaceBoard.findAggregateHeight(replaceBoard.bitmap) * -0.66569
+    score += replaceBoard.findHoles(replaceBoard.bitmap) * -0.46544
+    score += replaceBoard.findWells(replaceBoard.bitmap) * -0.24077
+    boardScores.append(score)
+  
+  # find max score
+  maxScore = 0
+  index = 0
+  for i in xrange(len(boardScores)):
+    if boardScores[i] > maxScore:
+      index = i
+  return index, solutions[i][0]
+
 if __name__ == '__main__':
   if len(sys.argv) == 3:
     # This AI executable will be called with two arguments: a JSON blob of the
@@ -276,68 +339,21 @@ if __name__ == '__main__':
     board = Board.construct_from_json(sys.argv[1])
 
     block = board.block
-    visited = set()
-    q = Queue.Queue()
-    q.put(([],copy.deepcopy(block)))
-    solutions = []
-    while not q.empty():
-      ins,b = q.get()
-      nb = copy.deepcopy(b)
-      nb.left()
-      if board.check(nb) and (nb not in visited):
-        q.put((ins + ['left'],nb))
-        visited.add(nb)
-      nb = copy.deepcopy(b)
-      nb.right()
-      if board.check(nb) and (nb not in visited):
-        q.put((ins+['right'],nb))
-        visited.add(nb)
-      nb = copy.deepcopy(b)
-      nb.up()
-      if board.check(nb) and (nb not in visited):
-        q.put((ins+['up'],nb))
-        visited.add(nb)
-      nb = copy.deepcopy(b)
-      nb.down()
-      if board.check(nb) and (nb not in visited):
-        q.put((ins+['down'],nb))
-        visited.add(nb)
-      if not board.check(nb):
-        solutions.append((ins,b))
 
-    boardScores = []
+    rotated = [0]*4
+    for i in xrange(4):
+      b = copy.deepcopy(board)
+      for j in xrange(i+1):
+        b.block.rotate()
+      blck = b.block
+      rotated[i] = findBest(b, blck)
 
-    for (instructions, block) in solutions:
-      print >> sys.stderr, "== solution =="
-      replaceBoard = copy.deepcopy(board)
-      # move block to new position
-      for currInstruction in instructions:
-        print >> sys.stderr, currInstruction
-        if currInstruction == "down":
-          replaceBoard.block.down()
-        elif currInstruction == "up":
-          replaceBoard.block.up()
-        elif currInstruction == "left":
-          replaceBoard.block.left()
-        elif currInstruction == "right":
-          replaceBoard.block.right()
-      
-      # find score for this board
-      score = 0
-      score += replaceBoard.findCompleteLines(replaceBoard.bitmap) * 0.99275
-      score += replaceBoard.findAggregateHeight(replaceBoard.bitmap) * -0.66569
-      score += replaceBoard.findHoles(replaceBoard.bitmap) * -0.46544
-      score += replaceBoard.findWells(replaceBoard.bitmap) * -0.24077
-      boardScores.append(score)
-    
-    # find max score
     maxScore = 0
-    index = 0
-    for i in xrange(len(boardScores)):
-      if boardScores[i] > maxScore:
-        index = i
+    for i in xrange(4):
+      if (maxScore < rotated[i][0]):
+        maxScore = i
 
-    instructionsToUse = solutions[i][0]
+    instructionsToUse = rotated[i][1]
 
     for ins in instructionsToUse:
       print ins
