@@ -193,7 +193,6 @@ class Board(object):
     (rows, cols) = (len(bitmap), len(bitmap[0]))
     new_bitmap = [row for row in bitmap if not all(row)]
     return [cols*[0] for i in range(rows - len(new_bitmap))] + new_bitmap
-<<<<<<< HEAD
 
   # returns aggregate height of board
   def findAggregateHeight(bitmap):
@@ -211,9 +210,6 @@ class Board(object):
   # find the number of wells in the board
   def findWells(bitmap):
     return 0
-
-=======
->>>>>>> c3b18768f7ea71a340420ee81bb565aeb9815c17
 
 if __name__ == '__main__':
   if len(sys.argv) == 3:
