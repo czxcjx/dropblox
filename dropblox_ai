@@ -269,7 +269,7 @@ class Board(object):
 def findBest(board, block):
   visited = set()
   q = Queue.Queue()
-  q.put(([],copy.deepcopy(block)))
+  q.put(([],copy.deepcopy(board.block)))
   solutions = []
   while not q.empty():
     ins,b = q.get()
@@ -299,11 +299,11 @@ def findBest(board, block):
   boardScores = []
 
   for (instructions, block) in solutions:
-    print >> sys.stderr, "== solution =="
+   # print >> sys.stderr, "== solution =="
     replaceBoard = copy.deepcopy(board)
     # move block to new position
     for currInstruction in instructions:
-      print >> sys.stderr, currInstruction
+     # print >> sys.stderr, currInstruction
       if currInstruction == "down":
         replaceBoard.block.down()
       elif currInstruction == "up":
@@ -322,12 +322,15 @@ def findBest(board, block):
     boardScores.append(score)
   
   # find max score
-  maxScore = 0
+  maxScore = -1000000
   index = 0
+  # print >> sys.stderr, "board scores: " + str(boardScores)
   for i in xrange(len(boardScores)):
     if boardScores[i] > maxScore:
       index = i
-  return index, solutions[i][0]
+      maxScore = boardScores[i]
+  print >> sys.stderr, "board scores " + str(boardScores)
+  return maxScore, solutions[index][0]
 
 if __name__ == '__main__':
   if len(sys.argv) == 3:
@@ -347,14 +350,17 @@ if __name__ == '__main__':
         b.block.rotate()
       blck = b.block
       rotated[i] = findBest(b, blck)
+      print >> sys.stderr, rotated[i]
 
-    maxScore = 0
+    maxScore = rotated[0][0]
+    numRotations = 0
     for i in xrange(4):
       if (maxScore < rotated[i][0]):
-        maxScore = i
+        maxScore = rotated[i][0]
+        numRotations = i
 
-    instructionsToUse = rotated[i][1]
-    for i in xrange(maxScore):
+    instructionsToUse = rotated[numRotations][1]
+    for i in xrange(numRotations):
       instructionsToUse.insert(0, "rotate")
 
     for ins in instructionsToUse:
