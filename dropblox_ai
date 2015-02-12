@@ -240,12 +240,31 @@ class Board(object):
     return output
 
   # find the number of holes in the board
-  def findHoles(bitmap):
-    return 0
+  def findHoles(self, bitmap):
+		count = 0
+		for i in reversed(xrange(1,33)):
+			check = 0
+			for j in xrange(12):
+				if (bitmap[i][j] == 0):
+					check = check + 1
+					if (bitmap[i-1][j] != 0):
+						count = count + 1
+			if (check == 12):
+				break
+    return count
 
   # find the number of wells in the board
-  def findWells(bitmap):
-    return 0
+  def findWells(self, bitmap):
+		heights = [0]*12
+		for j in xrange(12):
+			for i in xrange(33):
+				if (bitmap[i][j] != 0):
+					heights[j] = 32 - i
+					break
+		bumpiness = 0
+		for i in xrange(len(heights) - 1):
+			bumpiness += abs(heights[i] - heights[i+1])
+    return bumpiness
 
 if __name__ == '__main__':
   if len(sys.argv) == 3:
