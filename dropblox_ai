@@ -241,29 +241,29 @@ class Board(object):
 
   # find the number of holes in the board
   def findHoles(self, bitmap):
-		count = 0
-		for i in reversed(xrange(1,33)):
-			check = 0
-			for j in xrange(12):
-				if (bitmap[i][j] == 0):
-					check = check + 1
-					if (bitmap[i-1][j] != 0):
-						count = count + 1
-			if (check == 12):
-				break
+    count = 0
+    for i in reversed(xrange(1,33)):
+      check = 0
+      for j in xrange(12):
+        if (bitmap[i][j] == 0):
+          check = check + 1
+          if (bitmap[i-1][j] != 0):
+            count = count + 1
+      if (check == 12):
+        break
     return count
 
   # find the number of wells in the board
   def findWells(self, bitmap):
-		heights = [0]*12
-		for j in xrange(12):
-			for i in xrange(33):
-				if (bitmap[i][j] != 0):
-					heights[j] = 32 - i
-					break
-		bumpiness = 0
-		for i in xrange(len(heights) - 1):
-			bumpiness += abs(heights[i] - heights[i+1])
+    heights = [0]*12
+    for j in xrange(12):
+      for i in xrange(33):
+        if (bitmap[i][j] != 0):
+          heights[j] = 32 - i
+          break
+    bumpiness = 0
+    for i in xrange(len(heights) - 1):
+      bumpiness += abs(heights[i] - heights[i+1])
     return bumpiness
 
 if __name__ == '__main__':
@@ -305,24 +305,42 @@ if __name__ == '__main__':
       if not board.check(nb):
         solutions.append((ins,b))
 
-    print >> sys.stderr, "solutions"
-    print >> sys.stderr, solutions
+    boardScores = []
 
-    print >> sys.stderr, "height " + str(board.findAggregateHeight(board.bitmap))
-    print >> sys.stderr, "lines " + str(board.findCompleteLines(board.bitmap))
+    for (instructions, block) in solutions:
+      print >> sys.stderr, "== solution =="
+      replaceBoard = copy.deepcopy(board)
+      # move block to new position
+      for currInstruction in instructions:
+        print >> sys.stderr, currInstruction
+        if currInstruction == "down":
+          replaceBoard.block.down()
+        elif currInstruction == "up":
+          replaceBoard.block.up()
+        elif currInstruction == "left":
+          replaceBoard.block.left()
+        elif currInstruction == "right":
+          replaceBoard.block.right()
+      
+      # find score for this board
+      score = 0
+      score += replaceBoard.findCompleteLines(replaceBoard.bitmap) * 0.99275
+      score += replaceBoard.findAggregateHeight(replaceBoard.bitmap) * -0.66569
+      score += replaceBoard.findHoles(replaceBoard.bitmap) * -0.46544
+      score += replaceBoard.findWells(replaceBoard.bitmap) * -0.24077
+      boardScores.append(score)
     
-    # current block
-    block = board.block
+    # find max score
+    maxScore = 0
+    index = 0
+    for i in xrange(len(boardScores)):
+      if boardScores[i] > maxScore:
+        index = i
 
-    # very simple AI that moves the current block as far left as possible
-    moves = []                  # list of moves to make
-    while board.check(block):   # while the block in in a legal position
-      block.left()              # move the block left
-      moves.append('left')      # append a left command to oure moves list
-    if len(moves) > 0:          # remove that last left command, as it got the block into an illegal state
-      moves.pop()
-    for move in moves:          # print our moves
-      print move
+    instructionsToUse = solutions[i][0]
+
+    for ins in instructionsToUse:
+      print ins
     sys.stdout.flush()          # flush stdout
 
 
