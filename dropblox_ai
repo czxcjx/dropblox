@@ -213,13 +213,31 @@ class Board(object):
     return [cols*[0] for i in range(rows - len(new_bitmap))] + new_bitmap
 
   # returns aggregate height of board
-  def findAggregateHeight(bitmap):
+  def findAggregateHeight(self, bitmap):
     # can probably keep this as a class variable in the board
-    return 0
+    output = 0
+
+    for j in xrange(self.cols):
+      highestRow = 35
+      for i in reversed(xrange(self.rows)):
+        if bitmap[i][j] > 0 and i < highestRow:
+          highestRow = i
+      output += highestRow
+
+    return output
 
   # find number of lines that are completed
-  def findCompleteLines(bitmap):
-    return 0
+  def findCompleteLines(self, bitmap):
+    output = 0
+    for i in reversed(xrange(self.rows)):
+      complete = True
+      for j in xrange(self.cols):
+        if bitmap[i][j] == 0:
+          complete = False
+          break
+      if complete:
+        output += 1
+    return output
 
   # find the number of holes in the board
   def findHoles(bitmap):
@@ -237,6 +255,7 @@ if __name__ == '__main__':
 
     # current board
     board = Board.construct_from_json(sys.argv[1])
+
     block = board.block
     visited = set()
     q = Queue.Queue()
@@ -267,9 +286,12 @@ if __name__ == '__main__':
       if not board.check(nb):
         solutions.append((ins,b))
 
-    for ins,b in solutions:
-      print >> sys.stderr, ins
-      
+    print >> sys.stderr, "solutions"
+    print >> sys.stderr, solutions
+
+    print >> sys.stderr, "height " + str(board.findAggregateHeight(board.bitmap))
+    print >> sys.stderr, "lines " + str(board.findCompleteLines(board.bitmap))
+    
     # current block
     block = board.block
 
