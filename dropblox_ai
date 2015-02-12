@@ -4,8 +4,10 @@
 #
 
 import json
+import copy
 import sys
 import time
+import Queue
 
 class InvalidMoveError(ValueError):
   pass
@@ -18,6 +20,10 @@ class Point(object):
 
 # A class representing a Block object.
 class Block(object):
+  def __eq__(self, other):
+    return self.translation.i == other.translation.i and self.translation.j == other.translation.j
+  def __hash__(self):
+    return hash(str(self.translation.i) + ',' + str(self.translation.j))
   def __init__(self, center, offsets):
     # The block's center and offsets should not be mutated.
     self.center = Point(center['i'], center['j'])
@@ -187,6 +193,18 @@ class Board(object):
       return None
     return Board(new_bitmap, self.preview[0], self.preview[1:])
 
+  def __hash__(self):
+    return hash(str(self.draw_board()))
+
+  def __eq__(self, other):
+    return str(self.draw_board()) == str(other.draw_board()) 
+
+  def draw_board(self):
+    ret = [list(row) for row in self.bitmap]
+    for offset in self.block.offsets:
+      ret[self.block.center.i + offset.i][self.block.center.j + offset.j] = 1
+    return ret
+
   # A helper method used to remove any full rows from a bitmap. Returns the new bitmap.
   @staticmethod
   def remove_rows(bitmap):
@@ -202,7 +220,39 @@ if __name__ == '__main__':
 
     # current board
     board = Board.construct_from_json(sys.argv[1])
+    block = board.block
+    visited = set()
+    q = Queue.Queue()
+    q.put(([],copy.deepcopy(block)))
+    solutions = []
+    while not q.empty():
+      ins,b = q.get()
+      nb = copy.deepcopy(b)
+      nb.left()
+      if board.check(nb) and (nb not in visited):
+        q.put((ins + ['left'],nb))
+        visited.add(nb)
+      nb = copy.deepcopy(b)
+      nb.right()
+      if board.check(nb) and (nb not in visited):
+        q.put((ins+['right'],nb))
+        visited.add(nb)
+      nb = copy.deepcopy(b)
+      nb.up()
+      if board.check(nb) and (nb not in visited):
+        q.put((ins+['up'],nb))
+        visited.add(nb)
+      nb = copy.deepcopy(b)
+      nb.down()
+      if board.check(nb) and (nb not in visited):
+        q.put((ins+['down'],nb))
+        visited.add(nb)
+      if not board.check(nb):
+        solutions.append((ins,b))
 
+    for ins,b in solutions:
+      print >> sys.stderr, ins
+      
     # current block
     block = board.block
 
