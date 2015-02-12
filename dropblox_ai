@@ -354,6 +354,8 @@ if __name__ == '__main__':
         maxScore = i
 
     instructionsToUse = rotated[i][1]
+    for i in xrange(maxScore):
+      instructionsToUse.insert(0, "rotate")
 
     for ins in instructionsToUse:
       print ins
